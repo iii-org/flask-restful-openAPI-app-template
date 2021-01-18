@@ -14,24 +14,32 @@ stages:
         PLUGIN_INSECURE: "true"
         PLUGIN_MIRROR: https://10.20.0.73:5443
         PLUGIN_MTU: "1000"
-
-  # 部屬 swagger
-  - name: deploy--swagger-editor
+  
+  #  採用chart的形式
+  - name: Deploy app-web
     steps:
-    - applyYamlConfig:
-        path: ./k8s-yaml/swagger-deployment.yaml
-    - applyYamlConfig:
-        path: ./k8s-yaml/swagger-service.yaml
-    - applyYamlConfig:
-        path: ./k8s-yaml/swagger-ingress.yaml
+    - applyAppConfig:
+      catalogTemplate: cattle-global-data:iii-dev-charts3-web
+      version: 0.2.0
+      name: ${CICD_GIT_REPO_NAME}-${CICD_GIT_BRANCH}
+      targetNamespace: ${CICD_GIT_REPO_NAME}
+      answers:
+        xip.ip: "10.20.0.74"
+        harbor.host: "10.20.0.73:5443"
+        # 基礎pipeline參數
+        git.host: "10.20.0.73"
+        git.url: ${CICD_GIT_URL}
+        git.branch: ${CICD_GIT_BRANCH}
+        git.commitID: ${CICD_GIT_COMMIT}
+        git.repoName: ${CICD_GIT_REPO_NAME}
+        # web參數設定
+        web.type: uwsgi-flask
+        # 10.50.1.63:5443/app/${CICD_GIT_REPO_NAME}-web
+        web.image: ${CICD_GIT_REPO_NAME}/${CICD_GIT_REPO_NAME}
+        web.tag: ${CICD_GIT_BRANCH}-${CICD_GIT_COMMIT}
+        checkmarx.enabled: true
+        webinspect.enabled: true
+        apieditor.enabled: true
+        apieditor.filename: openapi.yaml
 
-  # 部屬restful服務(使用者編寫)
-  - name: deploy--restful-service
-    steps:
-    - applyYamlConfig:
-        path: ./k8s-yaml/restful-deployment.yaml
-    - applyYamlConfig:
-        path: ./k8s-yaml/restful-service.yaml
-    - applyYamlConfig:
-        path: ./k8s-yaml/restful-ingress.yaml
     
